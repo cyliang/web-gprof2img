@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh_TW">
+<head>
+	<title>Profile 圖形結果生成器</title>
+	<meta name="author" content="Chih-Yung Liang">
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+</head>
+
+<body>
+<div class="page-header">
+	<div class="container">
+		<h1>
+			Profile 圖形結果生成器<br>
+			<small>準備好你的profile結果</small>
+		</h1>
+	</div>
+</div>
+<div class="container">
+	<div class="row">
+		<div class="col-sm-6 col-sm-push-6">
+			<p>
+			使用說明：
+			<ol>
+				<li>瀏覽選擇你的profile結果檔案</li>
+				<li>按下確定</li>
+				<li>等一下下</li>
+				<li>你的圖會顯示在下面</li>
+				<li>按下旁邊的下載</li>
+			</ol>
+			</p>
+		</div>
+		<div class="col-sm-6 col-sm-pull-6">
+			<form id="profile-form" method="POST" action="#">
+				<div class="form-group">
+					<input type="file" id="profile-file" required>
+				</div>
+				<button type="submit" class="btn btn-success" id="profile-confirm">確定</button>
+			</form>
+		</div>
+	</div>
+
+	<div id="result-div">
+		<hr>
+		<h1>結果圖形</h1>
+		<p class="text-center">
+			<button type="button" class="btn btn-danger btn-lg" id="result-reset">重新選擇profile檔案</button>
+			<a class="btn btn-success btn-lg" id="result-download" download="profile.png">儲存圖片</a>
+		</p>
+		<img class="img-responsive" id="result-img">
+	</div>
+</div>
+</body>
+
+<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script>
+
+var result_div
+var result_img
+var result_save
+var profile_form
+var profile_file
+var reader = new FileReader()
+
+reader.onloadend = function() {
+	$.post('convert.php', {
+		data: reader.result
+	}, function(data, status) {
+		if(status != 'success' || data.status != 'success') {
+			alert("功能維護中")
+		} else {
+			var content = 'data:image/png;base64,' + data.data
+			result_img.attr('src', content)
+			result_save.attr('href', content)
+			result_div.slideDown()
+		}
+	}, 'json')
+}
+
+$(document).ready(function() {
+	result_div = $('#result-div').hide()
+	result_img = $('#result-img')
+	result_save = $('#result-download')
+	$('#result-reset').click(function() {
+		result_div.slideUp()
+		profile_form.find('button, input').removeAttr('disabled')
+	})
+
+	profile_file = $('#profile-file')
+	profile_form = $('#profile-form').submit(function() {
+		event.preventDefault()
+
+		var file = profile_file[0].files[0]
+		if(file) {
+			$(this).find('button, input').attr('disabled', 'disabled')
+			reader.readAsDataURL(file)
+		}
+	})
+})
+
+</script>
+
+</html>
